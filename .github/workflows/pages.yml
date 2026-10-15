@@ -30,6 +30,10 @@ jobs:
         run: |
           mkdir _site
           cp -r index.html manifest.webmanifest sw.js css js icons _site/
+      - name: Stempl versionen på
+        env:
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: node scripts/stamp-version.mjs _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

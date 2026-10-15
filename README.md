@@ -61,7 +61,15 @@ npm test         # tester spilregler og at alle genererede baner kan løses
 npm run stats    # statistik over banerne for hver sværhedsgrad
 ```
 
-Service workeren (offline) virker kun over `https` eller på `localhost`.
+Service workeren (offline) virker kun over `https` eller på `localhost`. Lokalt henter den altid filerne fra serveren først, så ændringer ses med det samme.
+
+## Version og opdateringer
+
+Nederst på forsiden står hvilken version der kører – commit-hash og dato, som link til commit'en på GitHub. Lokalt står der "Udviklingsversion".
+
+Ved udgivelse stempler `scripts/stamp-version.mjs` versionen ind i de udgivne filer: scripts og stylesheets indlæses som `fil.js?v=<hash>`, og service workeren får sin egen cache pr. udgivelse. En ny udgivelse kan derfor aldrig blandes med gamle filer i browseren. Browseren henter den nye udgivelse i baggrunden, og næste gang spillet åbnes, kører den nye version.
+
+Er der kommet en nyere udgivelse end den der kører, viser forsiden **Ny version klar – opdatér**, som henter den nye version med det samme. **Installér som app** vises kun, når spillet ikke allerede er installeret; på iPhone forklarer den, hvordan man føjer spillet til hjemmeskærmen.
 
 ## Udgiv og installér
 
@@ -78,6 +86,7 @@ Installér på telefonen:
 |---|---|
 | `index.html`, `css/style.css` | Menu, spilskærm og dialoger |
 | `js/main.js` | Spillets gang: liv, tip, gemt fremskridt, skærme |
+| `js/app-info.js`, `js/version.js` | Version, "ny version"-knap og installér-knap på forsiden |
 | `js/board.js` | Spillereglerne: hvornår en pil kan komme ud |
 | `js/generator.js` | Banegenerator og sværhedsgrader |
 | `js/view.js` | Tegning på canvas, animationer, tryk og zoom |
@@ -85,8 +94,9 @@ Installér på telefonen:
 | `js/rng.js` | Seedet tilfældighedsgenerator |
 | `sw.js`, `manifest.webmanifest` | PWA: offline-cache og app-info |
 | `scripts/make-icons.mjs` | Tegner app-ikonerne i `icons/` |
+| `scripts/stamp-version.mjs` | Stempler versionen ind ved udgivelse |
 
 Ved ændringer:
 
-- Tilføjes eller fjernes filer, så opdatér listen og `VERSION` i `sw.js`.
+- Tilføjes eller fjernes filer, så opdatér listen `FILES` i `sw.js`.
 - Ændres generatoren, så hæv `GENERATOR_VERSION` i `js/generator.js` (alle baner bliver nye, og en gemt igangværende bane kasseres).
