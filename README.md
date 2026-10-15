@@ -18,20 +18,24 @@ At fjerne en pil gør aldrig en anden pil fanget, så man kan ikke "låse sig fa
 | | Bane | Liv | Pile | Tip | Farver |
 |---|---|---|---|---|---|
 | Let | 6×8 | 5 | korte (2–4 prikker), få knæk | 3 | ja |
-| Mellem | 8×11 | 4 | op til 6 prikker | 2 | ja |
-| Svær | 10×14 | 3 | op til 9 prikker, mange knæk | 1 | nej |
-| Ekspert | 12×17 | 2 | op til 14 prikker, snoede | 0 | nej |
+| Mellem | 9×12 | 4 | op til 6 prikker | 2 | ja |
+| Svær | 11×16 | 3 | op til 8 prikker, mange knæk | 1 | nej |
+| Ekspert | 14×20 | 2 | op til 8 prikker, snoede | 0 | nej |
 
-Sværhedsgraden styrer også, hvor tæt pilene er flettet ind i hinanden: på de svære baner er der færre frie pile ad gangen og længere kæder af pile, der venter på hinanden.
+Sværhedsgraden styrer også, hvor tæt pilene er flettet ind i hinanden: på de svære baner er der færre frie pile ad gangen (færre gyldige træk at vælge imellem) og længere kæder af pile, der venter på hinanden.
 
 Typiske tal (fra `npm run stats`):
 
 | | Pile | Frie pile ad gangen (gns.) | "Runder" før banen er tom |
 |---|---|---|---|
-| Let | ~15 | ~5,5 | ~2 |
-| Mellem | ~18 | ~3,9 | ~6 |
-| Svær | ~21 | ~3,2 | ~8 |
-| Ekspert | ~25 | ~3,2 | ~10 |
+| Let | ~15 | ~4,9 | ~3 |
+| Mellem | ~21 | ~3,0 | ~8 |
+| Svær | ~28 | ~2,2 | ~14 |
+| Ekspert | ~45 | ~1,3 | ~35 |
+
+På Ekspert er der altså som regel kun én pil, der kan fjernes – den skal findes blandt op til 45.
+
+Tryk, der lander omtrent midt mellem to pile, ignoreres, så et upræcist tryk ikke koster et liv.
 
 Hver sværhedsgrad har uendeligt mange baner (Bane 1, 2, 3, …). En bane er altid den samme, så "Prøv igen" giver præcis samme opstilling. Fremskridt og en igangværende bane gemmes på telefonen.
 
@@ -42,9 +46,10 @@ Banerne genereres i `js/generator.js` – baglæns:
 1. Pilene lægges ud én ad gangen. En ny pil skal altid have fri bane ud til kanten forbi de pile, der allerede ligger.
 2. Derfor kan banen altid løses: fjern pilene i omvendt rækkefølge.
 3. Senere pile må gerne lægge sig i vejen for tidligere pile – det er det, der skaber puslespillet. På de svære niveauer foretrækker generatoren pile, der spærrer for en pil, som ellers ville være fri.
-4. Til sidst fyldes småhuller ud ved at forlænge naboer, og korte pile flettes sammen med nabopile, så banen bliver tæt og "labyrint-agtig".
+4. Småhuller fyldes ud ved at forlænge naboer, og korte pile flettes sammen med nabopile, så banen bliver tæt og "labyrint-agtig".
+5. Til sidst finjusteres den færdige bane (undtagen på Let): tusindvis af små ændringer – vend en pil, eller giv en endeprik videre til en nabopil – prøves af, og en ændring beholdes kun, hvis banen stadig kan løses og kommer tættere på sværhedsgradens mål for, hvor mange pile der er frie ad gangen.
 
-Hver bane laves i nogle få forsøg, og det forsøg der passer bedst til sværhedsgraden vælges. Det tager få millisekunder.
+En Ekspert-bane tager omkring 50 ms at lave på en computer og et par tiendedele sekund på en langsom telefon; imens står der "Bygger banen …".
 
 ## Kør lokalt
 
@@ -56,7 +61,15 @@ npm test         # tester spilregler og at alle genererede baner kan løses
 npm run stats    # statistik over banerne for hver sværhedsgrad
 ```
 
-Service workeren (offline) virker kun over `https` eller på `localhost`.
+Service workeren (offline) virker kun over `https` eller på `localhost`. Lokalt henter den altid filerne fra serveren først, så ændringer ses med det samme.
+
+## Version og opdateringer
+
+Nederst på forsiden står hvilken version der kører – commit-hash og dato, som link til commit'en på GitHub. Lokalt står der "Udviklingsversion".
+
+Ved udgivelse stempler `scripts/stamp-version.mjs` versionen ind i de udgivne filer: scripts og stylesheets indlæses som `fil.js?v=<hash>`, og service workeren får sin egen cache pr. udgivelse. En ny udgivelse kan derfor aldrig blandes med gamle filer i browseren. Browseren henter den nye udgivelse i baggrunden, og næste gang spillet åbnes, kører den nye version.
+
+Er der kommet en nyere udgivelse end den der kører, viser forsiden **Ny version klar – opdatér**, som henter den nye version med det samme. **Installér som app** vises kun, når spillet ikke allerede er installeret; på iPhone forklarer den, hvordan man føjer spillet til hjemmeskærmen.
 
 ## Udgiv og installér
 
@@ -73,6 +86,7 @@ Installér på telefonen:
 |---|---|
 | `index.html`, `css/style.css` | Menu, spilskærm og dialoger |
 | `js/main.js` | Spillets gang: liv, tip, gemt fremskridt, skærme |
+| `js/app-info.js`, `js/version.js` | Version, "ny version"-knap og installér-knap på forsiden |
 | `js/board.js` | Spillereglerne: hvornår en pil kan komme ud |
 | `js/generator.js` | Banegenerator og sværhedsgrader |
 | `js/view.js` | Tegning på canvas, animationer, tryk og zoom |
@@ -80,8 +94,9 @@ Installér på telefonen:
 | `js/rng.js` | Seedet tilfældighedsgenerator |
 | `sw.js`, `manifest.webmanifest` | PWA: offline-cache og app-info |
 | `scripts/make-icons.mjs` | Tegner app-ikonerne i `icons/` |
+| `scripts/stamp-version.mjs` | Stempler versionen ind ved udgivelse |
 
 Ved ændringer:
 
-- Tilføjes eller fjernes filer, så opdatér listen og `VERSION` i `sw.js`.
+- Tilføjes eller fjernes filer, så opdatér listen `FILES` i `sw.js`.
 - Ændres generatoren, så hæv `GENERATOR_VERSION` i `js/generator.js` (alle baner bliver nye, og en gemt igangværende bane kasseres).

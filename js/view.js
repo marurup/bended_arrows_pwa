@@ -7,6 +7,7 @@ const HALF = 0.28; // half width of the arrowhead
 const MARGIN = 0.75; // paper shown around the outer dots
 const MAX_ZOOM = 3.5;
 const TAP_SLOP = 10; // px a finger may move and still count as a tap
+const AMBIGUOUS = 0.2; // dot spacings: closer calls than this between two arrows are ignored
 
 const easeIn = (u) => 0.2 * u + 0.8 * u * u;
 const easeOut = (u) => 1 - (1 - u) * (1 - u);
@@ -454,15 +455,17 @@ export class BoardView {
     );
   }
 
-  // The arrow closest to a screen point, if any is near enough.
+  // The arrow closest to a screen point, if any is near enough. A tap that
+  // lands about halfway between two arrows is ignored rather than guessed,
+  // so a near miss never costs a life.
   hitTest(px, py) {
     if (!this.board) return -1;
     const { s, ox, oy } = this.layout();
     const wx = (px - ox) / s;
     const wy = (py - oy) / s;
-    const limit = Math.max(0.55, 18 / s);
     let best = -1;
-    let bestD = limit;
+    let bestD = Infinity;
+    let secondD = Infinity;
     for (const a of this.board.arrows) {
       if (this.board.removed[a.id] || this.anims.has(a.id)) continue;
       const pts = a.cells;
@@ -472,10 +475,13 @@ export class BoardView {
         d = Math.min(d, segDist(wx, wy, pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]));
       }
       if (d < bestD) {
+        secondD = bestD;
         bestD = d;
         best = a.id;
-      }
+      } else if (d < secondD) secondD = d;
     }
+    if (bestD > Math.max(0.55, 18 / s)) return -1;
+    if (secondD - bestD < AMBIGUOUS) return -1;
     return best;
   }
 }
