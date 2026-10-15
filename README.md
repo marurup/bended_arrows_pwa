@@ -1,4 +1,4 @@
-# Bended Arrows
+# Fri bane
 
 Et puslespil til mobilen, lavet som PWA (installérbar web-app, virker offline).
 
