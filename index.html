@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Skyd pilene af det ternede papir én ad gangen – uden at de rammer hinanden." />
+    <meta name="theme-color" content="#f6f3ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171b22" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Arrows" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Bended Arrows</title>
+  </head>
+  <body>
+    <main id="menu" class="screen menu">
+      <header class="menu-head">
+        <img class="logo" src="icons/icon.svg" alt="" width="88" height="88" />
+        <h1>Bended Arrows</h1>
+        <p class="tagline">Skyd pilene af papiret – uden at de støder sammen.</p>
+      </header>
+
+      <button id="continue-btn" class="btn primary wide" hidden></button>
+
+      <h2 class="section-title">Vælg sværhedsgrad</h2>
+      <div id="difficulty-list" class="difficulty-list"></div>
+
+      <div class="menu-foot">
+        <button id="howto-btn" class="btn ghost">Sådan spiller du</button>
+        <button id="sound-btn" class="btn ghost" aria-pressed="true">Lyd: til</button>
+      </div>
+    </main>
+
+    <section id="game" class="screen game" hidden>
+      <header class="hud">
+        <button id="back-btn" class="icon-btn" aria-label="Til menuen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+        </button>
+        <div class="hud-title">
+          <strong id="level-name"></strong>
+          <span id="arrows-left"></span>
+        </div>
+        <div id="lives" class="lives" role="img"></div>
+      </header>
+
+      <div id="board-wrap" class="board-wrap">
+        <canvas id="board" aria-label="Spillepladen"></canvas>
+        <button id="zoom-reset" class="icon-btn floating" aria-label="Vis hele banen" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+          </svg>
+        </button>
+      </div>
+
+      <footer class="toolbar">
+        <button id="hint-btn" class="btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"
+            />
+          </svg>
+          <span>Tip</span><span id="hint-count" class="badge"></span>
+        </button>
+        <button id="restart-btn" class="btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5" />
+          </svg>
+          <span>Forfra</span>
+        </button>
+      </footer>
+    </section>
+
+    <div id="overlay" class="overlay" hidden>
+      <div class="card" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+        <h2 id="overlay-title"></h2>
+        <div id="overlay-body" class="card-body"></div>
+        <div id="overlay-actions" class="actions"></div>
+      </div>
+    </div>
+
+    <template id="howto-template">
+      <ol class="rules">
+        <li>
+          Tryk på en pil. Den glider ud af banen i den retning, den peger – hovedet først, og resten følger efter som en
+          slange.
+        </li>
+        <li>
+          Står en anden pil i vejen på den lige linje foran hovedet, støder de sammen. Du mister et liv, og pilen glider
+          tilbage.
+        </li>
+        <li>Fjern alle pile for at klare banen. Når en pil er væk, kan de pile, den spærrede for, komme fri.</li>
+      </ol>
+      <p class="muted">
+        <strong>Tip</strong> markerer en pil, der kan fjernes. På de store baner kan du zoome med to fingre.
+      </p>
+    </template>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

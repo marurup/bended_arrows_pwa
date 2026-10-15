@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><clipPath id="c"><rect width="512" height="512" rx="112"/></clipPath></defs>
+<g clip-path="url(#c)">
+<rect width="512" height="512" fill="#f6f3ea"/>
+<g transform="translate(0 0) scale(1)">
+<g stroke="#d6e1ec" stroke-width="4"><line x1="-64" y1="0" x2="-64" y2="512"/><line x1="0" y1="-64" x2="512" y2="-64"/><line x1="16" y1="0" x2="16" y2="512"/><line x1="0" y1="16" x2="512" y2="16"/><line x1="96" y1="0" x2="96" y2="512"/><line x1="0" y1="96" x2="512" y2="96"/><line x1="176" y1="0" x2="176" y2="512"/><line x1="0" y1="176" x2="512" y2="176"/><line x1="256" y1="0" x2="256" y2="512"/><line x1="0" y1="256" x2="512" y2="256"/><line x1="336" y1="0" x2="336" y2="512"/><line x1="0" y1="336" x2="512" y2="336"/><line x1="416" y1="0" x2="416" y2="512"/><line x1="0" y1="416" x2="512" y2="416"/><line x1="496" y1="0" x2="496" y2="512"/><line x1="0" y1="496" x2="512" y2="496"/><line x1="576" y1="0" x2="576" y2="512"/><line x1="0" y1="576" x2="512" y2="576"/></g>
+<g fill="#aebccb"><circle cx="96" cy="96" r="7"/><circle cx="176" cy="96" r="7"/><circle cx="416" cy="96" r="7"/><circle cx="96" cy="176" r="7"/><circle cx="176" cy="176" r="7"/><circle cx="416" cy="176" r="7"/><circle cx="176" cy="336" r="7"/><circle cx="256" cy="336" r="7"/></g>
+<polyline points="96,416 96,256 256,256 256,96" fill="none" stroke="#1f3f76" stroke-width="17.6" stroke-linecap="round" stroke-linejoin="round"/><polygon points="256,62.4 283.2,105.6 228.8,105.6" fill="#1f3f76" stroke="#1f3f76" stroke-width="8" stroke-linejoin="round"/>
+<polyline points="416,256 416,416 176,416" fill="none" stroke="#c4372b" stroke-width="17.6" stroke-linecap="round" stroke-linejoin="round"/><polygon points="142.4,416 185.6,388.8 185.6,443.2" fill="#c4372b" stroke="#c4372b" stroke-width="8" stroke-linejoin="round"/>
+<polyline points="336,336 336,96" fill="none" stroke="#17806f" stroke-width="17.6" stroke-linecap="round" stroke-linejoin="round"/><polygon points="336,62.4 363.2,105.6 308.8,105.6" fill="#17806f" stroke="#17806f" stroke-width="8" stroke-linejoin="round"/>
+</g>
+</g>
+</svg>
