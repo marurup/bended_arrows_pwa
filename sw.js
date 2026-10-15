@@ -1,6 +1,6 @@
 // Offline support: the whole game is a handful of static files, cached on
 // install. Bump VERSION when files are added or removed.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = `bended-arrows-${VERSION}`;
 const FILES = [
   './',

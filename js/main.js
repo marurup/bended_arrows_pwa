@@ -58,34 +58,52 @@ const view = new BoardView($('board'), {
   },
 });
 
+let loading = 0;
+
+// A big board takes a moment to build on slower phones, so the game screen
+// comes up first with a note, and the level is generated right after.
 function startLevel(difficulty, levelNumber, resume = null) {
   const params = DIFFICULTIES[difficulty];
-  const board = new Board(generateLevel(difficulty, levelNumber));
-  game = {
-    difficulty,
-    levelNumber,
-    params,
-    board,
-    lives: params.lives,
-    shownLives: params.lives,
-    hintsLeft: params.hints,
-    mistakes: 0,
-    elapsed: 0,
-    startedAt: performance.now(),
-    over: false,
-  };
-  if (resume) {
-    for (const id of resume.removed) if (board.arrows[id]) board.remove(id);
-    game.lives = game.shownLives = resume.lives;
-    game.hintsLeft = resume.hintsLeft;
-    game.mistakes = resume.mistakes;
-    game.elapsed = resume.elapsed;
-  }
+  const token = ++loading;
+  game = null;
   hideOverlay();
   showGameScreen();
-  view.setBoard(board, { colored: params.colored });
-  renderHud();
-  saveCurrent();
+  $('level-name').textContent = `${params.label} · Bane ${levelNumber}`;
+  $('arrows-left').textContent = '';
+  $('lives').innerHTML = '';
+  $('hint-count').textContent = '';
+  $('hint-btn').disabled = true;
+  $('board-wrap').classList.add('loading');
+  requestAnimationFrame(() =>
+    setTimeout(() => {
+      if (token !== loading || $('game').hidden) return;
+      const board = new Board(generateLevel(difficulty, levelNumber));
+      game = {
+        difficulty,
+        levelNumber,
+        params,
+        board,
+        lives: params.lives,
+        shownLives: params.lives,
+        hintsLeft: params.hints,
+        mistakes: 0,
+        elapsed: 0,
+        startedAt: performance.now(),
+        over: false,
+      };
+      if (resume) {
+        for (const id of resume.removed) if (board.arrows[id]) board.remove(id);
+        game.lives = game.shownLives = resume.lives;
+        game.hintsLeft = resume.hintsLeft;
+        game.mistakes = resume.mistakes;
+        game.elapsed = resume.elapsed;
+      }
+      $('board-wrap').classList.remove('loading');
+      view.setBoard(board, { colored: params.colored });
+      renderHud();
+      saveCurrent();
+    }),
+  );
 }
 
 function elapsed() {

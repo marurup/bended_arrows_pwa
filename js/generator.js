@@ -6,15 +6,17 @@
 // Later arrows are free to land in the paths of earlier ones; that is what
 // creates the "which one can go first?" puzzle.
 //
-// Difficulty is steered by how arrows are chosen: on hard levels each new
-// arrow preferably blocks one that is currently free, keeping the number of
-// removable arrows low and the chains long; on easy levels new arrows try to
-// stay out of each other's way.
+// Difficulty is steered in two steps. While building, a new arrow on hard
+// levels preferably blocks one that is currently free; on easy levels new
+// arrows try to stay out of each other's way. Afterwards a local search
+// reshapes the finished board (turning arrows around, handing end dots to a
+// neighbour) towards the wanted number of free arrows at a time, keeping
+// only changes that leave the board solvable.
 
 import { createRng } from './rng.js';
 import { analyse } from './board.js';
 
-export const GENERATOR_VERSION = 1;
+export const GENERATOR_VERSION = 2;
 
 // prettier-ignore
 export const DIFFICULTIES = {
@@ -23,37 +25,40 @@ export const DIFFICULTIES = {
     cols: 6, rows: 8, lives: 5, hints: 3, colored: true,
     minLen: 2, maxLen: 4, bend: 0.3, hug: 0.6,
     depthBias: 1, targetFree: 99, wDep: -3, wFree: 0, freeBias: 1, wZero: 0, minFill: 1, aimFree: 8,
+    tune: 0,
   },
   medium: {
     label: 'Mellem',
-    cols: 8, rows: 11, lives: 4, hints: 2, colored: true,
+    cols: 9, rows: 12, lives: 4, hints: 2, colored: true,
     minLen: 2, maxLen: 6, bend: 0.35, hug: 0.6,
-    depthBias: 1.5, targetFree: 4, wDep: 0.5, wFree: 2, freeBias: 2, wZero: 2, minFill: 0.96, aimFree: 4,
+    depthBias: 1.5, targetFree: 4, wDep: 0.5, wFree: 2, freeBias: 2, wZero: 2, minFill: 0.96, aimFree: 3,
+    tune: 3000,
   },
   hard: {
     label: 'Svær',
-    cols: 10, rows: 14, lives: 3, hints: 1, colored: false,
-    minLen: 3, maxLen: 9, bend: 0.45, hug: 0.7,
-    depthBias: 2, targetFree: 2, wDep: 1.5, wFree: 6, freeBias: 6, wZero: 8, minFill: 0.92, aimFree: 3,
+    cols: 11, rows: 16, lives: 3, hints: 1, colored: false,
+    minLen: 3, maxLen: 8, bend: 0.45, hug: 0.7,
+    depthBias: 2, targetFree: 2, wDep: 1.5, wFree: 6, freeBias: 6, wZero: 8, minFill: 0.92, aimFree: 2.2,
+    tune: 8000,
   },
   expert: {
     label: 'Ekspert',
-    cols: 12, rows: 17, lives: 2, hints: 0, colored: false,
-    minLen: 3, maxLen: 14, bend: 0.5, hug: 0.8,
-    depthBias: 2.5, targetFree: 1, wDep: 2.5, wFree: 10, freeBias: 10, wZero: 14, minFill: 0.9, aimFree: 1,
+    cols: 14, rows: 20, lives: 2, hints: 0, colored: false,
+    minLen: 3, maxLen: 8, bend: 0.5, hug: 0.8,
+    depthBias: 2.5, targetFree: 1, wDep: 2.5, wFree: 10, freeBias: 10, wZero: 14, minFill: 0.9, aimFree: 1.3,
+    tune: 10000,
   },
 };
 
 const DX = [1, 0, -1, 0];
 const DY = [0, 1, 0, -1];
 const CANDIDATES = 14;
-const ATTEMPTS = 6;
+const ATTEMPTS = 2;
 
-function attempt(cols, rows, p, rng) {
-  const N = cols * rows;
-  // nb[i * 4 + d] = neighbour of dot i in direction d, or -1 off the board.
-  const nb = new Int32Array(N * 4);
-  for (let i = 0; i < N; i++) {
+// nb[i * 4 + d] = neighbour of dot i in direction d, or -1 off the board.
+function neighbours(cols, rows) {
+  const nb = new Int32Array(cols * rows * 4);
+  for (let i = 0; i < cols * rows; i++) {
     const x = i % cols;
     const y = (i / cols) | 0;
     for (let d = 0; d < 4; d++) {
@@ -62,6 +67,12 @@ function attempt(cols, rows, p, rng) {
       nb[i * 4 + d] = nx < 0 || ny < 0 || nx >= cols || ny >= rows ? -1 : ny * cols + nx;
     }
   }
+  return nb;
+}
+
+function attempt(cols, rows, p, rng) {
+  const N = cols * rows;
+  const nb = neighbours(cols, rows);
   const depth = new Int32Array(N);
   for (let i = 0; i < N; i++) {
     const x = i % cols;
@@ -425,6 +436,113 @@ function quality(level, p, stats) {
   return challenge + fill * 6 - Math.max(0, p.minFill - fill) * 60;
 }
 
+// Local search on a finished board. Moves: turn an arrow around, or hand an
+// end dot of one arrow over to the end of a neighbouring arrow (which can
+// also change where a head points). A move is kept when the board stays
+// solvable and gets closer to the wanted number of free arrows at a time.
+function tune(level, p, rng) {
+  const { cols, rows } = level;
+  const N = cols * rows;
+  const arrows = level.arrows.map((a) => a.cells.map(([x, y]) => y * cols + x));
+  const n = arrows.length;
+  const occ = new Int32Array(N).fill(-1);
+  arrows.forEach((cells, i) => cells.forEach((c) => (occ[c] = i)));
+  const nb = neighbours(cols, rows);
+  const dirOf = (cells) => {
+    const delta = cells[cells.length - 1] - cells[cells.length - 2];
+    return delta === 1 ? 0 : delta === cols ? 1 : delta === -1 ? 2 : 3;
+  };
+  const maxLen = p.maxLen + 2;
+  const blocks = Array.from({ length: n }, () => []);
+  const waiting = new Int32Array(n);
+  const ready = new Int32Array(n);
+  const depth = new Int32Array(n);
+
+  // Remove arrows as they come free (first come, first served) and measure
+  // how many are free at each step. null when the board can't be cleared or
+  // an arrow points into its own body.
+  const measure = () => {
+    for (let i = 0; i < n; i++) blocks[i].length = 0;
+    for (let i = 0; i < n; i++) {
+      const cells = arrows[i];
+      const d = dirOf(cells);
+      let k = 0;
+      for (let c = nb[cells[cells.length - 1] * 4 + d]; c !== -1; c = nb[c * 4 + d]) {
+        const o = occ[c];
+        if (o === i) return null;
+        if (o !== -1 && !blocks[o].includes(i)) {
+          blocks[o].push(i);
+          k++;
+        }
+      }
+      waiting[i] = k;
+    }
+    let head = 0;
+    let tail = 0;
+    for (let i = 0; i < n; i++) {
+      if (waiting[i] === 0) {
+        ready[tail++] = i;
+        depth[i] = 1;
+      }
+    }
+    const firstFree = tail;
+    let freeSum = 0;
+    let rounds = 0;
+    while (head < tail) {
+      freeSum += tail - head;
+      const i = ready[head++];
+      rounds = Math.max(rounds, depth[i]);
+      for (const j of blocks[i]) {
+        if (--waiting[j] === 0) {
+          ready[tail++] = j;
+          depth[j] = depth[i] + 1;
+        }
+      }
+    }
+    if (tail < n) return null;
+    const avgFree = freeSum / n;
+    return Math.abs(avgFree - p.aimFree) + 0.3 * Math.max(0, firstFree - p.aimFree) - 0.002 * rounds;
+  };
+
+  let score = measure();
+  for (let it = 0; it < p.tune; it++) {
+    const temp = 0.05 * (1 - it / p.tune);
+    const a = rng.int(n);
+    let undo;
+    if (rng.chance(0.3)) {
+      arrows[a].reverse();
+      undo = () => arrows[a].reverse();
+    } else {
+      const A = arrows[a];
+      if (A.length <= 2) continue;
+      const fromHead = rng.chance(0.5);
+      const e = fromHead ? A[A.length - 1] : A[0];
+      const m = nb[e * 4 + rng.int(4)];
+      const b = m === -1 ? -1 : occ[m];
+      if (b === -1 || b === a) continue;
+      const B = arrows[b];
+      const toHead = B[B.length - 1] === m;
+      if (B.length >= maxLen || (!toHead && B[0] !== m)) continue;
+      if (fromHead) A.pop();
+      else A.shift();
+      if (toHead) B.push(e);
+      else B.unshift(e);
+      occ[e] = b;
+      undo = () => {
+        if (toHead) B.pop();
+        else B.shift();
+        if (fromHead) A.push(e);
+        else A.unshift(e);
+        occ[e] = a;
+      };
+    }
+    const next = measure();
+    if (next !== null && (next <= score || rng.next() < Math.exp((score - next) / temp))) score = next;
+    else undo();
+  }
+  return { ...level, arrows: arrows.map((cells) => ({ cells: cells.map((c) => [c % cols, (c / cols) | 0]) })) };
+}
+
 export function generateLevel(difficulty, levelNumber) {
   const p = DIFFICULTIES[difficulty];
   const seed = `${difficulty}:${levelNumber}:v${GENERATOR_VERSION}`;
@@ -438,8 +556,9 @@ export function generateLevel(difficulty, levelNumber) {
     const q = quality(level, p, stats);
     if (q > bestQ) {
       bestQ = q;
-      best = { ...level, stats };
+      best = level;
     }
   }
-  return { ...best, difficulty, levelNumber, seed };
+  const tuned = tune(best, p, rng);
+  return { ...tuned, stats: analyse(tuned), difficulty, levelNumber, seed };
 }

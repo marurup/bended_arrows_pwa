@@ -113,3 +113,14 @@ for (const difficulty of Object.keys(DIFFICULTIES)) {
     }
   });
 }
+
+test('difficulties get harder in order: fewer free arrows at a time', () => {
+  const mean = (difficulty) => {
+    let sum = 0;
+    for (let n = 1; n <= 8; n++) sum += generateLevel(difficulty, n).stats.avgFree;
+    return sum / 8;
+  };
+  const [easy, medium, hard, expert] = ['easy', 'medium', 'hard', 'expert'].map(mean);
+  assert.ok(easy > medium && medium > hard && hard > expert, `${easy} > ${medium} > ${hard} > ${expert}`);
+  assert.ok(expert < 1.6, `expert averages ${expert} free arrows at a time`);
+});
