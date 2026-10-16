@@ -15,25 +15,25 @@ At fjerne en pil gør aldrig en anden pil fanget, så man kan ikke "låse sig fa
 
 ## Sværhedsgrader
 
-| | Bane | Liv | Pile | Tip | Farver |
+| | Bane (bane 1 → bane 20+) | Liv | Pile | Tip | Farver |
 |---|---|---|---|---|---|
-| Let | 6×8 | 5 | korte (2–4 prikker), få knæk | 3 | ja |
-| Mellem | 9×12 | 4 | op til 6 prikker | 2 | ja |
-| Svær | 11×16 | 3 | op til 8 prikker, mange knæk | 1 | nej |
-| Ekspert | 14×20 | 2 | op til 8 prikker, snoede | 0 | nej |
+| Let | 6×8 → 7×10 | 5 | korte (2–4 prikker), få knæk | 3 | ja |
+| Mellem | 9×12 → 10×14 | 4 | op til 6 prikker | 2 | ja |
+| Svær | 11×16 → 12×18 | 3 | op til 8 prikker, mange knæk | 1 | nej |
+| Ekspert | 14×20 → 15×22 | 2 | op til 8 prikker, snoede | 0 | nej |
 
 Sværhedsgraden styrer også, hvor tæt pilene er flettet ind i hinanden: på de svære baner er der færre frie pile ad gangen (færre gyldige træk at vælge imellem) og længere kæder af pile, der venter på hinanden.
 
-Typiske tal (fra `npm run stats`):
+Hver sværhedsgrad bliver sværere hen over de første 20 baner – banen vokser, og der er færre frie pile ad gangen – og ligger derefter fast på sit højeste niveau (`RAMP_LEVELS` og `size`/`free` i `js/generator.js`). Typiske tal (fra `npm run stats`):
 
-| | Pile | Frie pile ad gangen (gns.) | "Runder" før banen er tom |
+| | Pile | Frie pile ad gangen (gns.) | Længste kæde af pile, der venter på hinanden |
 |---|---|---|---|
-| Let | ~15 | ~4,9 | ~3 |
-| Mellem | ~21 | ~3,0 | ~8 |
-| Svær | ~28 | ~2,2 | ~14 |
-| Ekspert | ~45 | ~1,3 | ~35 |
+| Let | ~17 → ~23 | ~4,3 → ~3,5 | ~4 → ~7 |
+| Mellem | ~22 → ~27 | ~2,8 → ~2,4 | ~9 → ~12 |
+| Svær | ~30 → ~34 | ~2,0 → ~1,7 | ~16 → ~22 |
+| Ekspert | ~47 → ~52 | ~1,35 → ~1,25 | ~37 → ~43 |
 
-På Ekspert er der altså som regel kun én pil, der kan fjernes – den skal findes blandt op til 45.
+På Ekspert er der altså som regel kun én pil, der kan fjernes – den skal findes blandt op til 52.
 
 Tryk, der lander omtrent midt mellem to pile, ignoreres, så et upræcist tryk ikke koster et liv.
 

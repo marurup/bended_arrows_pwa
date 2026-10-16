@@ -16,39 +16,55 @@
 import { createRng } from './rng.js';
 import { analyse } from './board.js';
 
-export const GENERATOR_VERSION = 2;
+export const GENERATOR_VERSION = 3;
+
+// Each difficulty gets harder over its first RAMP_LEVELS levels: the board
+// grows and fewer arrows are free at a time. `size`, `free` (the wanted
+// number of free arrows at a time) and `tune` (local search steps) hold the
+// value for level 1 and the one used from level RAMP_LEVELS on.
+export const RAMP_LEVELS = 20;
 
 // prettier-ignore
 export const DIFFICULTIES = {
   easy: {
-    label: 'Let',
-    cols: 6, rows: 8, lives: 5, hints: 3, colored: true,
+    label: 'Let', lives: 5, hints: 3, colored: true,
+    size: [[6, 8], [7, 10]], free: [4.9, 3.5], tune: [0, 3000],
     minLen: 2, maxLen: 4, bend: 0.3, hug: 0.6,
-    depthBias: 1, targetFree: 99, wDep: -3, wFree: 0, freeBias: 1, wZero: 0, minFill: 1, aimFree: 8,
-    tune: 0,
+    depthBias: 1, targetFree: 99, wDep: -3, wFree: 0, freeBias: 1, wZero: 0, minFill: 1,
   },
   medium: {
-    label: 'Mellem',
-    cols: 9, rows: 12, lives: 4, hints: 2, colored: true,
+    label: 'Mellem', lives: 4, hints: 2, colored: true,
+    size: [[9, 12], [10, 14]], free: [3, 2.4], tune: [3000, 5000],
     minLen: 2, maxLen: 6, bend: 0.35, hug: 0.6,
-    depthBias: 1.5, targetFree: 4, wDep: 0.5, wFree: 2, freeBias: 2, wZero: 2, minFill: 0.96, aimFree: 3,
-    tune: 3000,
+    depthBias: 1.5, targetFree: 4, wDep: 0.5, wFree: 2, freeBias: 2, wZero: 2, minFill: 0.96,
   },
   hard: {
-    label: 'Svær',
-    cols: 11, rows: 16, lives: 3, hints: 1, colored: false,
+    label: 'Svær', lives: 3, hints: 1, colored: false,
+    size: [[11, 16], [12, 18]], free: [2.2, 1.7], tune: [8000, 10000],
     minLen: 3, maxLen: 8, bend: 0.45, hug: 0.7,
-    depthBias: 2, targetFree: 2, wDep: 1.5, wFree: 6, freeBias: 6, wZero: 8, minFill: 0.92, aimFree: 2.2,
-    tune: 8000,
+    depthBias: 2, targetFree: 2, wDep: 1.5, wFree: 6, freeBias: 6, wZero: 8, minFill: 0.92,
   },
   expert: {
-    label: 'Ekspert',
-    cols: 14, rows: 20, lives: 2, hints: 0, colored: false,
+    label: 'Ekspert', lives: 2, hints: 0, colored: false,
+    size: [[14, 20], [15, 22]], free: [1.3, 1.2], tune: [10000, 25000],
     minLen: 3, maxLen: 8, bend: 0.5, hug: 0.8,
-    depthBias: 2.5, targetFree: 1, wDep: 2.5, wFree: 10, freeBias: 10, wZero: 14, minFill: 0.9, aimFree: 1.3,
-    tune: 10000,
+    depthBias: 2.5, targetFree: 1, wDep: 2.5, wFree: 10, freeBias: 10, wZero: 14, minFill: 0.9,
   },
 };
+
+// The settings for one level of a difficulty.
+export function levelParams(difficulty, levelNumber) {
+  const p = DIFFICULTIES[difficulty];
+  const t = Math.min(1, Math.max(0, (levelNumber - 1) / (RAMP_LEVELS - 1)));
+  const between = (a, b) => a + (b - a) * t;
+  return {
+    ...p,
+    cols: Math.round(between(p.size[0][0], p.size[1][0])),
+    rows: Math.round(between(p.size[0][1], p.size[1][1])),
+    aimFree: between(p.free[0], p.free[1]),
+    tune: Math.round(between(p.tune[0], p.tune[1])),
+  };
+}
 
 const DX = [1, 0, -1, 0];
 const DY = [0, 1, 0, -1];
@@ -544,7 +560,7 @@ function tune(level, p, rng) {
 }
 
 export function generateLevel(difficulty, levelNumber) {
-  const p = DIFFICULTIES[difficulty];
+  const p = levelParams(difficulty, levelNumber);
   const seed = `${difficulty}:${levelNumber}:v${GENERATOR_VERSION}`;
   const rng = createRng(seed);
   let best = null;

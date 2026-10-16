@@ -1,5 +1,5 @@
 import { Board } from './board.js';
-import { DIFFICULTIES, GENERATOR_VERSION, generateLevel } from './generator.js';
+import { DIFFICULTIES, GENERATOR_VERSION, generateLevel, levelParams } from './generator.js';
 import { BoardView } from './view.js';
 import { sfx, setSoundEnabled, unlockAudio } from './audio.js';
 import { initAppInfo } from './app-info.js';
@@ -269,7 +269,7 @@ function renderMenu() {
   const list = $('difficulty-list');
   list.innerHTML = '';
   for (const key of ORDER) {
-    const p = DIFFICULTIES[key];
+    const p = levelParams(key, nextLevel(key));
     const btn = document.createElement('button');
     btn.className = 'diff-card';
     btn.style.setProperty('--tone', `var(--${key})`);
