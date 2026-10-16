@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Board, analyse } from '../js/board.js';
-import { DIFFICULTIES, generateLevel } from '../js/generator.js';
+import { DIFFICULTIES, RAMP_LEVELS, generateLevel, levelParams } from '../js/generator.js';
 
 const level = (cols, rows, ...arrows) => ({ cols, rows, arrows: arrows.map((cells) => ({ cells })) });
 
@@ -89,8 +89,8 @@ test('levels are deterministic per difficulty and number', () => {
 
 for (const difficulty of Object.keys(DIFFICULTIES)) {
   test(`${difficulty}: generated levels are valid and solvable`, () => {
-    const p = DIFFICULTIES[difficulty];
     for (let n = 1; n <= 25; n++) {
+      const p = levelParams(difficulty, n);
       const lvl = generateLevel(difficulty, n);
       assert.equal(lvl.cols, p.cols);
       assert.equal(lvl.rows, p.rows);
@@ -123,4 +123,27 @@ test('difficulties get harder in order: fewer free arrows at a time', () => {
   const [easy, medium, hard, expert] = ['easy', 'medium', 'hard', 'expert'].map(mean);
   assert.ok(easy > medium && medium > hard && hard > expert, `${easy} > ${medium} > ${hard} > ${expert}`);
   assert.ok(expert < 1.6, `expert averages ${expert} free arrows at a time`);
+});
+
+test('levels get harder the further you get, up to a ceiling', () => {
+  for (const difficulty of Object.keys(DIFFICULTIES)) {
+    const first = levelParams(difficulty, 1);
+    const top = levelParams(difficulty, RAMP_LEVELS);
+    assert.ok(top.cols * top.rows > first.cols * first.rows, `${difficulty}: the board grows`);
+    assert.ok(top.aimFree < first.aimFree, `${difficulty}: fewer free arrows at a time`);
+    for (let n = 2; n <= RAMP_LEVELS; n++) {
+      const [a, b] = [levelParams(difficulty, n - 1), levelParams(difficulty, n)];
+      assert.ok(b.cols >= a.cols && b.rows >= a.rows && b.aimFree <= a.aimFree, `${difficulty} ${n} is no easier`);
+    }
+    assert.deepEqual(levelParams(difficulty, 500), top, `${difficulty}: stays at the ceiling`);
+  }
+  const mean = (difficulty, from) => {
+    let sum = 0;
+    for (let n = from; n < from + 6; n++) sum += generateLevel(difficulty, n).stats.avgFree;
+    return sum / 6;
+  };
+  for (const difficulty of ['easy', 'medium', 'hard']) {
+    const [early, late] = [mean(difficulty, 1), mean(difficulty, RAMP_LEVELS)];
+    assert.ok(late < early, `${difficulty}: ${late} free arrows at a time late vs ${early} early`);
+  }
 });
