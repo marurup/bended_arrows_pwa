@@ -13,6 +13,8 @@ Spillepladen ligner et stykke ternet papir. Mellem prikkerne er der tegnet pile 
 
 At fjerne en pil gør aldrig en anden pil fanget, så man kan ikke "låse sig fast". Udfordringen er at se, hvilke pile der er fri – og liv er hvor mange fejl du har råd til.
 
+Du kan spille her: https://marurup.github.io/bended_arrows_pwa/
+
 ## Sværhedsgrader
 
 | | Bane (bane 1 → bane 20+) | Liv | Pile | Tip | Farver |
