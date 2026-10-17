@@ -36,11 +36,13 @@ export class BoardView {
     this.readTheme();
     this.bindInput();
     new ResizeObserver(() => this.resize()).observe(canvas.parentElement);
-    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      this.readTheme();
-      this.assignColors();
-      this.requestDraw();
-    });
+  }
+
+  // Call after switching between light and dark.
+  refreshTheme() {
+    this.readTheme();
+    this.assignColors();
+    this.requestDraw();
   }
 
   readTheme() {

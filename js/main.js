@@ -22,7 +22,7 @@ const $ = (id) => document.getElementById(id);
 const save = loadSave();
 
 function loadSave() {
-  const fresh = { progress: {}, solved: {}, sound: true, current: null };
+  const fresh = { progress: {}, solved: {}, sound: true, theme: 'auto', current: null };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (raw && typeof raw === 'object') {
@@ -42,6 +42,21 @@ function persist() {
   } catch {
     // Private mode or full storage: the game still works, it just won't remember.
   }
+}
+
+// ---- theme ---------------------------------------------------------------
+
+const THEMES = { auto: 'Auto', light: 'Lys', dark: 'Mørk' };
+const systemDark = matchMedia('(prefers-color-scheme: dark)');
+
+// Light or dark: the player's choice, or the phone's setting on 'auto'. The
+// script at the top of index.html does the same before the first paint.
+function applyTheme() {
+  if (!THEMES[save.theme]) save.theme = 'auto';
+  const dark = save.theme === 'dark' || (save.theme === 'auto' && systemDark.matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.querySelector('meta[name="theme-color"]').content = dark ? '#171b22' : '#f6f3ea';
+  view.refreshTheme();
 }
 
 function nextLevel(difficulty) {
@@ -292,6 +307,7 @@ function renderMenu() {
   const sound = $('sound-btn');
   sound.textContent = save.sound ? 'Lyd: til' : 'Lyd: fra';
   sound.setAttribute('aria-pressed', String(save.sound));
+  $('theme-btn').textContent = `Tema: ${THEMES[save.theme]}`;
 }
 
 // ---- screens & overlay ----------------------------------------------------
@@ -386,6 +402,16 @@ $('sound-btn').addEventListener('click', () => {
   persist();
   renderMenu();
 });
+$('theme-btn').addEventListener('click', () => {
+  const order = Object.keys(THEMES);
+  save.theme = order[(order.indexOf(save.theme) + 1) % order.length];
+  persist();
+  applyTheme();
+  renderMenu();
+});
+systemDark.addEventListener('change', () => {
+  if (save.theme === 'auto') applyTheme();
+});
 $('back-btn').addEventListener('click', goToMenu);
 $('hint-btn').addEventListener('click', useHint);
 $('restart-btn').addEventListener('click', restart);
@@ -409,6 +435,7 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', saveCurrent);
 
 setSoundEnabled(save.sound);
+applyTheme();
 renderMenu();
 initAppInfo({ showIosInstall });
 if (!save.seenRules) {
