@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --paper: #f6f3ea;
   --grid: #dde6ee;
   --frame: #b7c6d6;
@@ -21,24 +21,25 @@
   --expert: #c92a2a;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #171b22;
-    --grid: #222a35;
-    --frame: #3a4657;
-    --dot: #3d4959;
-    --ink: #e4e9f2;
-    --ink-palette: #8db6ff, #ff8b7b, #5cd2bd, #c8a3f2, #ffb26a, #93d68f;
-    --danger: #ff5f5f;
-    --hint: #ffd257;
-    --text: #e4e9f2;
-    --muted: #94a1b4;
-    --card: #1f252e;
-    --line: #2e3744;
-    --accent: #6c9cff;
-    --accent-ink: #0c1220;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  }
+/* Chosen in the menu (Tema), or following the phone; see the script in
+   index.html and applyTheme() in js/main.js. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #171b22;
+  --grid: #222a35;
+  --frame: #3a4657;
+  --dot: #3d4959;
+  --ink: #e4e9f2;
+  --ink-palette: #8db6ff, #ff8b7b, #5cd2bd, #c8a3f2, #ffb26a, #93d68f;
+  --danger: #ff5f5f;
+  --hint: #ffd257;
+  --text: #e4e9f2;
+  --muted: #94a1b4;
+  --card: #1f252e;
+  --line: #2e3744;
+  --accent: #6c9cff;
+  --accent-ink: #0c1220;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -267,6 +268,7 @@ h1 {
 
 .menu-foot {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
   margin-top: auto;

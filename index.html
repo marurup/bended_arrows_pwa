@@ -4,8 +4,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="Skyd pilene af det ternede papir én ad gangen – uden at de rammer hinanden." />
-    <meta name="theme-color" content="#f6f3ea" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#171b22" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f6f3ea" />
+    <script>
+      // Pick light or dark before anything is drawn, so a dark screen never
+      // flashes light. Same rule as applyTheme() in js/main.js.
+      (() => {
+        let choice = 'auto';
+        try {
+          choice = JSON.parse(localStorage.getItem('bended-arrows')).theme || 'auto';
+        } catch {}
+        const dark = choice === 'dark' || (choice === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        document.querySelector('meta[name="theme-color"]').content = dark ? '#171b22' : '#f6f3ea';
+      })();
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -32,6 +44,7 @@
       <div class="menu-foot">
         <button id="howto-btn" class="btn ghost">Sådan spiller du</button>
         <button id="sound-btn" class="btn ghost" aria-pressed="true">Lyd: til</button>
+        <button id="theme-btn" class="btn ghost">Tema: Auto</button>
       </div>
 
       <footer class="app-info">

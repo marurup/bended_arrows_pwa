@@ -10,6 +10,7 @@ Spillepladen ligner et stykke ternet papir. Mellem prikkerne er der tegnet pile 
 - Står en anden pil i vejen på den lige linje foran hovedet, støder de sammen. Du mister et liv, og pilen glider tilbage.
 - Når en pil er væk, kan de pile, den spærrede for, komme fri. Fjern alle pile for at klare banen.
 - **Tip** markerer en pil, der kan fjernes. På de store baner kan du zoome med to fingre.
+- **Tema** på forsiden skifter mellem *Auto* (følger telefonens lyse/mørke indstilling), *Lys* og *Mørk*.
 
 At fjerne en pil gør aldrig en anden pil fanget, så man kan ikke "låse sig fast". Udfordringen er at se, hvilke pile der er fri – og liv er hvor mange fejl du har råd til.
 
